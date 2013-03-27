@@ -6,6 +6,8 @@ clib is a command line interface for Interactive Brokers backed by [IbPy](https:
 
 	  $ python setup.py install
 
+You will also need to download and install [Trader Workstation](http://www.interactivebrokers.com/en/?f=tws).  It needs to be running and connected to use clib.
+
 ## Options
   
   - `--host` defaults to 'localhost'
