@@ -3,7 +3,7 @@
 ## Command Line Interactive Brokers
 ## Author: Mike Carson <ca98am79@gmail.com>
 ##         http://ca98am79.com
-## License: BSD
+## License: MIT
 
 import sys
 
@@ -46,10 +46,11 @@ def format_error(msg):
     which = ('(in %s)' % error_msgs.get(msg)) if error_msgs.get(msg) else ''
     return '%8s: %s %s' % (msg.errorCode, msg.errorMsg, which)
 
-
 def format_default(msg):
     return '    %s' % msg
 
+def error(msg):
+	print msg
 
 msg_formatters = {
     'default':format_default,
@@ -179,7 +180,9 @@ def main():
     con = ibConnection(options.host, options.port, options.clientid)
     con.register(save_order_id, 'NextValidId')
     con.register(save_tick, 'TickSize', 'TickPrice')
-    con.connect()
+    if not (con.connect()):
+		error(u"Could not connect to TWS, please make sure TWS is running and you are logged in.")
+		sys.exit(1)
     short_sleep()
 
     if len(args) < 1:
