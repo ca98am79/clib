@@ -1,4 +1,5 @@
-#!/usr/bin/env python
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 
 ## Command Line Interactive Brokers
 ## Author: Mike Carson <ca98am79@gmail.com>
@@ -7,8 +8,8 @@
 
 import sys
 
-if float("%d.%d" %(sys.version_info[0], sys.version_info[1])) < 2.5:
-    sys.stderr.write("ERROR: Python 2.5 or higher required, sorry.\n")
+if float('%d.%d' % (sys.version_info[0], sys.version_info[1])) < 2.5:
+    sys.stderr.write('ERROR: Python 2.5 or higher required, sorry.\n')
     sys.exit(1)
 
 import logging
@@ -27,7 +28,6 @@ from ib.ext.ScannerSubscription import ScannerSubscription
 from ib.lib.logger import logger as basicConfig
 from ib.opt import ibConnection, message
 
-
 error_msgs = {}
 order_ids = [0]
 tick_msgs = []
@@ -35,27 +35,28 @@ short_sleep = partial(sleep, 1)
 long_sleep = partial(sleep, 10)
 
 verbose_levels = {
-    3 : DEBUG,
-    2 : INFO,
-    1 : WARN,
-    0 : ERROR,
+    3: DEBUG,
+    2: INFO,
+    1: WARN,
+    0: ERROR,
     }
 
 
 def format_error(msg):
-    which = ('(in %s)' % error_msgs.get(msg)) if error_msgs.get(msg) else ''
+    which = ('(in %s)'
+             % error_msgs.get(msg) if error_msgs.get(msg) else '')
     return '%8s: %s %s' % (msg.errorCode, msg.errorMsg, which)
+
 
 def format_default(msg):
     return '    %s' % msg
 
-def error(msg):
-	print msg
 
-msg_formatters = {
-    'default':format_default,
-    'Error':format_error,
-    }
+def error(msg):
+    print msg
+
+
+msg_formatters = {'default': format_default, 'Error': format_error}
 
 
 def next_order_id():
@@ -75,6 +76,8 @@ def gen_tick_id():
     while True:
         yield i
         i += 1
+
+
 gen_tick_id = gen_tick_id().next
 
 
@@ -99,7 +102,7 @@ def make_order(limit_price, quantity, order_type):
     return order
 
 
-#def exec_filter(client_id):
+# def exec_filter(client_id):
 #    contract = make_contract('NVDA')
 #    filt = ExecutionFilter()
 #    filt.m_clientId = client_id
@@ -109,11 +112,15 @@ def make_order(limit_price, quantity, order_type):
 #    return filt
 
 def make_error_catcher(seq):
+
     def catcher(msg):
         seq.append(msg)
+
     return catcher
 
+
 def catch_errors(call):
+
     def inner(connection, options):
         errors = []
         catcher = make_error_catcher(errors)
@@ -121,16 +128,18 @@ def catch_errors(call):
         call(connection, options)
         connection.unregister(catcher, 'Error')
         return errors
+
     inner.__name__ = call.__name__
     return inner
 
+
 def place_order(connection, args, order_type):
     try:
-        askprice = [m.price for m in tick_msgs
-                    if (getattr(m, 'price', None) is not None) and m.field==2][0]
+        askprice = [m.price for m in tick_msgs if getattr(m, 'price',
+                    None) is not None and m.field == 2][0]
     except (IndexError, ):
         askprice = 100.0
-	order = make_order(askprice, args[0], order_type)
+        order = make_order(askprice, args[0], order_type)
     if args[1]:
         connection.placeOrder(id=next_order_id(),
                               contract=make_contract(args[1]),
@@ -138,17 +147,30 @@ def place_order(connection, args, order_type):
     contract = make_contract(args[1])
     connection.reqContractDetails(3, contract)
 
+
 def cmd_buy_order(connection, args):
-    place_order(connection, args, "BUY")
+    place_order(connection, args, 'BUY')
+
 
 def cmd_sell_order(connection, args):
-    place_order(connection, args, "SELL")
+    place_order(connection, args, 'SELL')
+
 
 def get_commands_list():
-    return [
-    {"cmd":"buy", "label":"Buy", "param":"Quantity Symbol", "func":cmd_buy_order, "argc":2},
-    {"cmd":"sell", "label":"Sell", "param":"Quantity Symbol", "func":cmd_sell_order, "argc":2},
-    ]
+    return [{
+        'cmd': 'buy',
+        'label': 'Buy',
+        'param': 'Quantity Symbol',
+        'func': cmd_buy_order,
+        'argc': 2,
+        }, {
+        'cmd': 'sell',
+        'label': 'Sell',
+        'param': 'Quantity Symbol',
+        'func': cmd_sell_order,
+        'argc': 2,
+        }]
+
 
 def main():
 
@@ -157,13 +179,26 @@ def main():
     add = parser.add_option
     add('-n', '--host', dest='host', default='localhost',
         help='Name or address of remote server (default: %default)')
-    add('-p', '--port', dest='port', default=7496, type='int',
-        help='Port number for remote connection (default: %default)')
-    add('-c', '--client', dest='clientid', metavar='ID', default=0, type='int',
-        help='Client id for remote connection (default: %default)')
+    add(
+        '-p',
+        '--port',
+        dest='port',
+        default=7496,
+        type='int',
+        help='Port number for remote connection (default: %default)',
+        )
+    add(
+        '-c',
+        '--client',
+        dest='clientid',
+        metavar='ID',
+        default=0,
+        type='int',
+        help='Client id for remote connection (default: %default)',
+        )
     add('-v', '--verbose', default=0, action='count',
         help='Verbose output, may be repeated')
-    options, args = parser.parse_args()
+    (options, args) = parser.parse_args()
 
     basicConfig()
     logging.root.setLevel(verbose_levels.get(options.verbose, ERROR))
@@ -171,45 +206,50 @@ def main():
     commands_list = get_commands_list()
     commands = {}
 
-	## Populate "commands" from "commands_list"
-    for cmd in commands_list:
-        if cmd.has_key("cmd"):
-            commands[cmd["cmd"]] = cmd
+    # # Populate "commands" from "commands_list"
 
-    ## connect to IB
+    for cmd in commands_list:
+        if cmd.has_key('cmd'):
+            commands[cmd['cmd']] = cmd
+
+    # # connect to IB
+
     con = ibConnection(options.host, options.port, options.clientid)
     con.register(save_order_id, 'NextValidId')
     con.register(save_tick, 'TickSize', 'TickPrice')
-    if not (con.connect()):
-		error(u"Could not connect to TWS, please make sure TWS is running and you are logged in.")
-		sys.exit(1)
+    if not con.connect():
+        error(u'Could not connect to TWS, please make sure TWS is running and you are logged in.'
+              )
+        sys.exit(1)
     short_sleep()
 
     if len(args) < 1:
-        error(u"Missing command. Please run with --help for more information.")
+        error(u'Missing command. Please run with --help for more information.'
+              )
         sys.exit(1)
 
     command = args.pop(0)
     try:
-        #DEBUG(u"Command: %s" % commands[command]["cmd"])
-        ## We must do this lookup in extra step to
-        ## avoid catching all KeyError exceptions
-        ## from inner functions.
-        cmd_func = commands[command]["func"]
+
+        # DEBUG(u"Command: %s" % commands[command]["cmd"])
+        # # We must do this lookup in extra step to
+        # # avoid catching all KeyError exceptions
+        # # from inner functions.
+
+        cmd_func = commands[command]['func']
     except KeyError, e:
-        error(u"Invalid command: %s" % e)
+        error(u'Invalid command: %s' % e)
         sys.exit(1)
 
-    if len(args) < commands[command]["argc"]:
+    if len(args) < commands[command]['argc']:
         error(u"Not enough paramters for command '%s'" % command)
         sys.exit(1)
 
     try:
         cmd_func(con, args)
     except IOError, e:
-        error(u"clib error: %s" % e)
+        error(u'clib error: %s' % e)
         sys.exit(1)
-	
 
 
 if __name__ == '__main__':
