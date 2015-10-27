@@ -29,7 +29,7 @@ Sell 500 AAPL at market:
 
 ## LICENSE - "MIT License"
 
-Copyright (c) 2013 Mike Carson, http://ca98am79.com/
+Copyright (c) 2015 Mike Carson, http://mc.to/
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
