@@ -2,6 +2,8 @@
 
 clib is a command line interface for Interactive Brokers backed by [IbPy](https://github.com/blampe/IbPy)
 
+__Notice: This an pre-alpha-quality software at the moment. Do NOT use in production!!__
+
 ## Installation
 
 	  $ python setup.py install
